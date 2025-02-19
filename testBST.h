@@ -41,8 +41,8 @@ public:
       test_constructMove_empty();
       test_constructMove_one();
       test_constructMove_standard();
-      //test_constructInitializer_empty();
-      //test_constructInitializer_standard();
+      test_constructInitializer_empty();
+      test_constructInitializer_standard();
       //test_destruct_empty();
       //test_destruct_standard();
 
@@ -50,16 +50,16 @@ public:
       // Assign
       test_assign_emptyToEmpty();
       test_assign_standardToEmpty();
-      //test_assign_emptyToStandard();
-      //test_assign_oneToStandard();
-      //test_assign_standardToOne();
-      //test_assign_standardToStandard();
-      //test_assignMove_emptyToEmpty();
-      //test_assignMove_standardToEmpty();
-      //test_assignMove_emptyToStandard();
-      //test_assignMove_oneToStandard();
-      //test_assignMove_standardToOne();
-      //test_assignMove_standardToStandard();
+      test_assign_emptyToStandard();
+      test_assign_oneToStandard();
+      test_assign_standardToOne();
+      test_assign_standardToStandard();
+      test_assignMove_emptyToEmpty();
+      test_assignMove_standardToEmpty();
+      test_assignMove_emptyToStandard();
+      test_assignMove_oneToStandard();
+      test_assignMove_standardToOne();
+      test_assignMove_standardToStandard();
       //test_assignInitializer_oneToStandard();
       //test_assignInitializer_standardToEmpty();
       test_swap_emptyToEmpty();
@@ -119,8 +119,8 @@ public:
       //test_erase_oneChild();
       //test_erase_twoChildren();
       //test_erase_twoChildrenSpecial();
-      //test_clear_empty();
-      //test_clear_standard();
+      test_clear_empty();
+      test_clear_standard();
 
       // Status
       test_empty_empty();

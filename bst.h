@@ -438,6 +438,21 @@ typename BST <T> ::iterator BST <T> :: erase(iterator & it)
 template <typename T>
 void BST <T> ::clear() noexcept
 {
+   // decend left hand side
+     // Recursive copy using lambda
+   auto deleteNodes = [](BNode* & pThis, auto&& deleteNodesRef) -> void
+      {
+         if (pThis)
+         {
+            deleteNodesRef(pThis->pLeft, deleteNodesRef);
+            deleteNodesRef(pThis->pRight, deleteNodesRef);
+            delete pThis;
+            pThis = nullptr;
+         }
+      };
+
+   // Invoke the lambda to copy the entire subtree
+   deleteNodes(root, deleteNodes);
    // clear the tree
    numElements = 0;
    root = nullptr;
