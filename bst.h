@@ -134,9 +134,9 @@ public:
    // 
    // Construct
    //
-   BNode() : pParent(nullptr), pLeft(nullptr), pRight(nullptr), isRed(true){ }
-   BNode(const T& t) : data(t), pParent(nullptr), pLeft(nullptr), pRight(nullptr), isRed(true) { }
-   BNode(T&& t) : data(std::move(t)), pParent(nullptr), pLeft(nullptr), pRight(nullptr), isRed(true) { }
+   BNode() : pParent(nullptr), pLeft(nullptr), pRight(nullptr), isRed(false){ }
+   BNode(const T& t) : data(t), pParent(nullptr), pLeft(nullptr), pRight(nullptr), isRed(false) { }
+   BNode(T&& t) : data(std::move(t)), pParent(nullptr), pLeft(nullptr), pRight(nullptr), isRed(false) { }
   
 
    //
@@ -316,8 +316,47 @@ BST <T> :: ~BST()
 template <typename T>
 BST <T> & BST <T> :: operator = (const BST <T> & rhs)
 {
-   //assign(root, rhs.root);
-   numElements = rhs.numElements;
+   if(this != &rhs) // Self-assignment check
+   {
+      clear(); // Clear current tree
+
+      // If rhs is not empty, copy nodes
+      if (rhs.root)
+      {
+         root = new BNode(rhs.root->data);
+         root->isRed = rhs.root->isRed;
+         numElements = rhs.numElements;
+
+         // Recursive copy using lambda
+         auto copyNodes = [](BNode* pDest, const BNode* pSrc, auto&& copyNodesRef) -> void
+            {
+               if (pSrc->pLeft)
+               {
+                  pDest->pLeft = new BNode(pSrc->pLeft->data);
+                  pDest->pLeft->isRed = pSrc->pLeft->isRed;
+                  pDest->pLeft->pParent = pDest;
+                  copyNodesRef(pDest->pLeft, pSrc->pLeft, copyNodesRef);
+               }
+
+               if (pSrc->pRight)
+               {
+                  pDest->pRight = new BNode(pSrc->pRight->data);
+                  pDest->pRight->isRed = pSrc->pRight->isRed;
+                  pDest->pRight->pParent = pDest;
+                  copyNodesRef(pDest->pRight, pSrc->pRight, copyNodesRef);
+               }
+            };
+
+         // Invoke the lambda to copy the entire subtree
+         copyNodes(root, rhs.root, copyNodes);
+      }
+      else
+      {
+         root = nullptr;
+         numElements = 0;
+      }
+   }
+
    return *this;
 }
 
