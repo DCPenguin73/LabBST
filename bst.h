@@ -111,8 +111,8 @@ public:
    // Status
    //
 
-   bool   empty() const noexcept { return true; }
-   size_t size()  const noexcept { return 99;   }
+   bool   empty() const noexcept { return numElements == 0; }
+   size_t size()  const noexcept { return numElements; }
    
 private:
 
@@ -134,18 +134,10 @@ public:
    // 
    // Construct
    //
-   BNode()
-   {
-      pLeft = pRight = this;
-   }
-   BNode(const T &  t) 
-   {
-      pLeft = pRight = this;
-   }
-   BNode(T && t) 
-   {  
-      pLeft = pRight = this;
-   }
+   BNode() : pParent(nullptr), pLeft(nullptr), pRight(nullptr), isRed(true){ }
+   BNode(const T& t) : data(t), pParent(nullptr), pLeft(nullptr), pRight(nullptr), isRed(true) { }
+   BNode(T&& t) : data(std::move(t)), pParent(nullptr), pLeft(nullptr), pRight(nullptr), isRed(true) { }
+  
 
    //
    // Insert
@@ -160,8 +152,8 @@ public:
    // 
    // Status
    //
-   bool isRightChild(BNode * pNode) const { return true; }
-   bool isLeftChild( BNode * pNode) const { return true; }
+   bool isRightChild(BNode* pNode) const { return true; }
+   bool isLeftChild(BNode* pNode) const { return true; }
 
    // balance the tree
    void balance();
@@ -205,7 +197,7 @@ public:
    { 
    }
    iterator(const iterator & rhs)         
-   { 
+   {
    }
    iterator & operator = (const iterator & rhs)
    {
@@ -265,8 +257,8 @@ private:
 template <typename T>
 BST <T> ::BST()
 {
-   numElements = 99;
-   root = new BNode;
+   numElements = 0;
+   root = nullptr;
 }
 
 /*********************************************
@@ -276,8 +268,9 @@ BST <T> ::BST()
 template <typename T>
 BST <T> :: BST ( const BST<T>& rhs) 
 {
-   numElements = 99;
-   root = new BNode;
+   root = nullptr;
+   numElements = 0;
+   *this = rhs;
 }
 
 /*********************************************
@@ -287,8 +280,11 @@ BST <T> :: BST ( const BST<T>& rhs)
 template <typename T>
 BST <T> :: BST(BST <T> && rhs) 
 {
-   numElements = 99;
-   root = new BNode;
+   root = rhs.root;
+   numElements = rhs.numElements;
+
+   rhs.root = nullptr;
+   rhs.numElements = 0;
 }
 
 /*********************************************
@@ -298,8 +294,9 @@ BST <T> :: BST(BST <T> && rhs)
 template <typename T>
 BST <T> ::BST(const std::initializer_list<T>& il)
 {
-   numElements = 99;
-   root = new BNode;
+   root = nullptr;
+   numElements = 0;
+   *this = il;
 }
 
 /*********************************************
@@ -308,7 +305,7 @@ BST <T> ::BST(const std::initializer_list<T>& il)
 template <typename T>
 BST <T> :: ~BST()
 {
-
+   clear();
 }
 
 
@@ -319,6 +316,8 @@ BST <T> :: ~BST()
 template <typename T>
 BST <T> & BST <T> :: operator = (const BST <T> & rhs)
 {
+   //assign(root, rhs.root);
+   numElements = rhs.numElements;
    return *this;
 }
 
@@ -329,6 +328,11 @@ BST <T> & BST <T> :: operator = (const BST <T> & rhs)
 template <typename T>
 BST <T> & BST <T> :: operator = (const std::initializer_list<T>& il)
 {
+   clear();
+   for (const T& t : il) // Iterate through each element in the initializer list
+   {
+      insert(t); // Insert each element into the BST
+   }
    return *this;
 }
 
@@ -339,6 +343,8 @@ BST <T> & BST <T> :: operator = (const std::initializer_list<T>& il)
 template <typename T>
 BST <T> & BST <T> :: operator = (BST <T> && rhs)
 {
+   clear();
+   swap(rhs);
    return *this;
 }
 
@@ -349,7 +355,13 @@ BST <T> & BST <T> :: operator = (BST <T> && rhs)
 template <typename T>
 void BST <T> :: swap (BST <T>& rhs)
 {
+   BNode* tempRoot = rhs.root;
+   rhs.root = root;
+   root = tempRoot;
 
+   size_t tempNumElements = rhs.numElements;
+   rhs.numElements = numElements;
+   numElements = tempNumElements;
 }
 
 /*****************************************************
@@ -387,6 +399,9 @@ typename BST <T> ::iterator BST <T> :: erase(iterator & it)
 template <typename T>
 void BST <T> ::clear() noexcept
 {
+   // clear the tree
+   numElements = 0;
+   root = nullptr;
 
 }
 
@@ -397,7 +412,12 @@ void BST <T> ::clear() noexcept
 template <typename T>
 typename BST <T> :: iterator custom :: BST <T> :: begin() const noexcept
 {
-   return end();
+   if (empty())
+      return end();
+   BNode* p = root;
+   while (p->pLeft)
+      p = p->pLeft;
+   return iterator(p);
 }
 
 
@@ -408,6 +428,16 @@ typename BST <T> :: iterator custom :: BST <T> :: begin() const noexcept
 template <typename T>
 typename BST <T> :: iterator BST<T> :: find(const T & t)
 {
+   BNode* p = root;
+   while (p)
+   {
+      if (p->data == t)
+         return iterator(p);
+      else if (t < p->data)
+         p = p->pLeft;
+      else
+         p = p->pLeft;
+   }
    return end();
 }
 
