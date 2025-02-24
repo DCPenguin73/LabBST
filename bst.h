@@ -20,6 +20,7 @@
 #pragma once
 
 #include <cstddef>
+#include <system_error>
 #ifdef DEBUG
 #define debug(x) x
 #else // !DEBUG
@@ -488,7 +489,8 @@ typename BST <T> :: iterator BST<T> :: find(const T & t)
 template <typename T>
 void BST <T> :: BNode :: addLeft (BNode * pNode)
 {
-
+   this->pLeft = pNode;
+   pNode->pParent = this;
 }
 
 /******************************************************
@@ -498,7 +500,8 @@ void BST <T> :: BNode :: addLeft (BNode * pNode)
 template <typename T>
 void BST <T> :: BNode :: addRight (BNode * pNode)
 {
-
+   this->pRight = pNode;
+   pNode->pParent = this;
 }
 
 /******************************************************
@@ -508,7 +511,8 @@ void BST <T> :: BNode :: addRight (BNode * pNode)
 template <typename T>
 void BST<T> :: BNode :: addLeft (const T & t)
 {
-
+    pLeft = new BNode * (t);
+    pLeft->pParent = this;
 }
 
 /******************************************************
@@ -518,7 +522,8 @@ void BST<T> :: BNode :: addLeft (const T & t)
 template <typename T>
 void BST<T> ::BNode::addLeft(T && t)
 {
-
+   pLeft = new BNode * (std::move(t));
+   pLeft->pParent = this;
 }
 
 /******************************************************
@@ -528,7 +533,8 @@ void BST<T> ::BNode::addLeft(T && t)
 template <typename T>
 void BST <T> :: BNode :: addRight (const T & t)
 {
-
+   pRight = new BNode * (t);
+   pRight->pParent = this;
 }
 
 /******************************************************
@@ -538,7 +544,8 @@ void BST <T> :: BNode :: addRight (const T & t)
 template <typename T>
 void BST <T> ::BNode::addRight(T && t)
 {
-
+   pRight = new BNode * (std::move(t));
+   pRight->pParent = this;
 }
 
 #ifdef DEBUG
