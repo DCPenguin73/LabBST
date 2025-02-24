@@ -136,10 +136,10 @@ public:
    //
    // Construct
    //
-   BNode() : pParent(nullptr), pLeft(nullptr), pRight(nullptr), isRed(false){ }
-   BNode(const T& t) : data(t), pParent(nullptr), pLeft(nullptr), pRight(nullptr), isRed(false) { }
-   BNode(T&& t) : data(std::move(t)), pParent(nullptr), pLeft(nullptr), pRight(nullptr), isRed(false) { }
 
+   BNode() : pParent(nullptr), pLeft(nullptr), pRight(nullptr), isRed(true){ }
+   BNode(const T& t) : data(t), pParent(nullptr), pLeft(nullptr), pRight(nullptr), isRed(true) { }
+   BNode(T&& t) : data(std::move(t)), pParent(nullptr), pLeft(nullptr), pRight(nullptr), isRed(true) { }
 
    //
    // Insert
@@ -178,6 +178,46 @@ public:
    BNode* pRight;         // Right child - larger
    BNode* pParent;        // Parent
    bool isRed;              // Red-black balancing stuff
+
+
+   void assign(BNode*& pDest, const BNode* pSrc) {
+      if (pSrc == nullptr) {
+         clear(pDest);
+         return;
+      }
+      if (pDest == nullptr) {
+         pDest = new BNode(pSrc->data);
+         pDest->isRed = pSrc->isRed; // Copy the isRed property
+         assign(pDest->pLeft, pSrc->pLeft);
+         if (pDest->pLeft)
+            pDest->pLeft->pParent = pDest;
+         assign(pDest->pRight, pSrc->pRight);
+         if (pDest->pRight)
+            pDest->pRight->pParent = pDest;
+      }
+      else {
+         pDest->data = pSrc->data;
+         pDest->isRed = pSrc->isRed; // Copy the isRed property
+         assign(pDest->pLeft, pSrc->pLeft);
+         if (pDest->pLeft)
+            pDest->pLeft->pParent = pDest;
+         assign(pDest->pRight, pSrc->pRight);
+         if (pDest->pRight)
+            pDest->pRight->pParent = pDest;
+      }
+   }
+
+
+   void clear(BNode*& pThis) {
+      if (pThis) {
+         clear(pThis->pLeft);
+         clear(pThis->pRight);
+         delete pThis;
+         pThis = nullptr;
+      }
+   }
+
+   friend class BST <T>;
 };
 
 /**********************************************************
@@ -268,7 +308,7 @@ BST <T> ::BST()
  * Copy one tree to another
  ********************************************/
 template <typename T>
-BST <T> :: BST ( const BST<T>& rhs)
+BST <T> ::BST(const BST<T>& rhs) : numElements(0), root(nullptr)
 {
    root = nullptr;
    numElements = 0;
@@ -316,41 +356,17 @@ BST <T> :: ~BST()
  * Copy one tree to another
  ********************************************/
 template <typename T>
-BST<T>& BST<T>::operator=(const BST<T>& rhs) {
-    if (this == &rhs) {
-        return *this;
-    }
+BST <T> & BST <T> :: operator = (const BST <T> & rhs)
+{
+   if(this != &rhs) {
+      // Clean up existing resources
+      clear();
 
-    clear();
-
-    std::function<BNode*(const BNode*)> copyNodes =
-        [&](const BNode* pSrc) -> BNode* {
-        if (pSrc == nullptr) {
-            return nullptr;
-        }
-
-        BNode* pDest = new BNode(pSrc->data); // Copy data
-        pDest->isRed = pSrc->isRed;         // Copy the RED color (Important!)
-        pDest->pLeft = copyNodes(pSrc->pLeft);
-        if (pDest->pLeft) {
-            pDest->pLeft->pParent = pDest;
-        }
-        pDest->pRight = copyNodes(pSrc->pRight);
-        if (pDest->pRight) {
-            pDest->pRight->pParent = pDest;
-        }
-
-        // **IMPORTANT:  RE-BALANCE THE TREE AFTER INSERTION**
-        // Call a function to balance the tree around pDest
-        pDest->balance();
-
-        return pDest;
-    };
-
-    root = copyNodes(rhs.root);
-    numElements = rhs.numElements;
-
-    return *this;
+      // Assign new values
+      root->assign(root, rhs.root);
+      numElements = rhs.numElements;
+   }
+   return *this;
 }
 
 /*********************************************
@@ -431,7 +447,9 @@ typename BST <T> ::iterator BST <T> :: erase(iterator & it)
 template <typename T>
 void BST <T> ::clear() noexcept
 {
-   // clear the tree
+   if (root) {
+      root->clear(root);
+   }
    numElements = 0;
    root = nullptr;
 
@@ -468,7 +486,7 @@ typename BST <T> :: iterator BST<T> :: find(const T & t)
       else if (t < p->data)
          p = p->pLeft;
       else
-         p = p->pLeft;
+         p = p->pRight;
    }
    return end();
 }
@@ -599,7 +617,7 @@ bool BST <T> :: BNode :: verifyRedBlack(int depth) const
    }
 
    // Rule d) Every path from a leaf to the root has the same # of black nodes
-   if (pLeft == nullptr && pRight && nullptr)
+   if (pLeft == nullptr && pRight == nullptr)
       if (depth != 0)
          fReturn = false;
    if (pLeft != nullptr)
