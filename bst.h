@@ -177,26 +177,39 @@ public:
    BNode* pParent;        // Parent
    bool isRed;              // Red-black balancing stuff
 
-private:
-   void copyNodes(BNode* pDest, const BNode* pSrc) {
-      if (pSrc->pLeft) {
-         pDest->pLeft = new BNode(pSrc->pLeft->data);
-         pDest->pLeft->isRed = pSrc->pLeft->isRed;
-         pDest->pLeft->pParent = pDest;
-         copyNodes(pDest->pLeft, pSrc->pLeft);
+
+   void assign(BNode*& pDest, const BNode* pSrc) {
+      if (pSrc == nullptr) {
+         clear(pDest);
+         return;
       }
-      if (pSrc->pRight) {
-         pDest->pRight = new BNode(pSrc->pRight->data);
-         pDest->pRight->isRed = pSrc->pRight->isRed;
-         pDest->pRight->pParent = pDest;
-         copyNodes(pDest->pRight, pSrc->pRight);
+      if (pDest == nullptr) {
+         pDest = new BNode(pSrc->data);
+         pDest->isRed = pSrc->isRed; // Copy the isRed property
+         assign(pDest->pLeft, pSrc->pLeft);
+         if (pDest->pLeft)
+            pDest->pLeft->pParent = pDest;
+         assign(pDest->pRight, pSrc->pRight);
+         if (pDest->pRight)
+            pDest->pRight->pParent = pDest;
+      }
+      else {
+         pDest->data = pSrc->data;
+         pDest->isRed = pSrc->isRed; // Copy the isRed property
+         assign(pDest->pLeft, pSrc->pLeft);
+         if (pDest->pLeft)
+            pDest->pLeft->pParent = pDest;
+         assign(pDest->pRight, pSrc->pRight);
+         if (pDest->pRight)
+            pDest->pRight->pParent = pDest;
       }
    }
+   
 
-   void deleteNodes(BNode*& pThis) {
+   void clear(BNode*& pThis) {
       if (pThis) {
-         deleteNodes(pThis->pLeft);
-         deleteNodes(pThis->pRight);
+         clear(pThis->pLeft);
+         clear(pThis->pRight);
          delete pThis;
          pThis = nullptr;
       }
@@ -293,7 +306,7 @@ BST <T> ::BST()
  * Copy one tree to another
  ********************************************/
 template <typename T>
-BST <T> :: BST ( const BST<T>& rhs) 
+BST <T> ::BST(const BST<T>& rhs) : numElements(0), root(nullptr)
 {
    root = nullptr;
    numElements = 0;
@@ -343,21 +356,13 @@ BST <T> :: ~BST()
 template <typename T>
 BST <T> & BST <T> :: operator = (const BST <T> & rhs)
 {
-   if (this != &rhs) {
-      clear(); // Clear current tree
+   if(this != &rhs) {
+      // Clean up existing resources
+      clear();
 
-      if (rhs.root) {
-         root = new BNode(rhs.root->data);
-         root->isRed = rhs.root->isRed;
-         numElements = rhs.numElements;
-
-         // Use the new method instead of the lambda
-         root->copyNodes(root, rhs.root);
-      }
-      else {
-         root = nullptr;
-         numElements = 0;
-      }
+      // Assign new values
+      root->assign(root, rhs.root);
+      numElements = rhs.numElements;
    }
    return *this;
 }
@@ -441,7 +446,7 @@ template <typename T>
 void BST <T> ::clear() noexcept
 {
    if (root) {
-      root->deleteNodes(root);
+      root->clear(root);
    }
    numElements = 0;
    root = nullptr;
@@ -479,7 +484,7 @@ typename BST <T> :: iterator BST<T> :: find(const T & t)
       else if (t < p->data)
          p = p->pLeft;
       else
-         p = p->pLeft;
+         p = p->pRight;
    }
    return end();
 }
@@ -604,7 +609,7 @@ bool BST <T> :: BNode :: verifyRedBlack(int depth) const
    }
 
    // Rule d) Every path from a leaf to the root has the same # of black nodes
-   if (pLeft == nullptr && pRight && nullptr)
+   if (pLeft == nullptr && pRight == nullptr)
       if (depth != 0)
          fReturn = false;
    if (pLeft != nullptr)
