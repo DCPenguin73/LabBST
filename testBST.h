@@ -41,13 +41,8 @@ public:
       test_constructMove_empty();
       test_constructMove_one();
       test_constructMove_standard();
-<<<<<<< HEAD
       test_constructInitializer_empty();
       test_constructInitializer_standard();
-=======
-      //test_constructInitializer_empty();
-      //test_constructInitializer_standard();
->>>>>>> master
       test_destruct_empty();
       test_destruct_standard();
 
