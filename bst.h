@@ -235,25 +235,26 @@ class BST <T> :: iterator
    friend class custom::map;
 public:
    // constructors and assignment
-   iterator(BNode * p = nullptr)
+   iterator(BNode * p = nullptr) : pNode(p)// needs implemented
    {
    }
-   iterator(const iterator & rhs)
+   iterator(const iterator & rhs) : pNode(rhs.pNode)
    {
    }
    iterator & operator = (const iterator & rhs)
    {
+      pNode = rhs.pNode;
       return *this;
    }
 
    // compare
    bool operator == (const iterator & rhs) const
    {
-      return true;
+      return pNode== rhs.pNode;
    }
    bool operator != (const iterator & rhs) const
    {
-      return true;
+      return pNode != rhs.pNode;
    }
 
    // de-reference. Cannot change because it will invalidate the BST
