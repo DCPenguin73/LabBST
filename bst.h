@@ -235,43 +235,50 @@ class BST <T> :: iterator
    friend class custom::map;
 public:
    // constructors and assignment
-   iterator(BNode * p = nullptr)
+   iterator(BNode * p = nullptr) : pNode(p)// needs implemented
    {
    }
-   iterator(const iterator & rhs)
+   iterator(const iterator & rhs) : pNode(rhs.pNode)
    {
    }
    iterator & operator = (const iterator & rhs)
    {
+      pNode = rhs.pNode;
       return *this;
    }
 
    // compare
    bool operator == (const iterator & rhs) const
    {
-      return true;
+      return pNode== rhs.pNode;
    }
    bool operator != (const iterator & rhs) const
    {
-      return true;
+      return pNode != rhs.pNode;
    }
 
    // de-reference. Cannot change because it will invalidate the BST
    const T & operator * () const
    {
-      return *(new T);
+      return pNode->data;
    }
 
    // increment and decrement
    iterator & operator ++ ();
    iterator   operator ++ (int postfix)
-   {
-      return *this;
+   { // save old value
+     // run prefix++
+     // return old value
+      BNode* pOld = *this;
+      ++this;
+      return pOld;
    }
    iterator & operator -- ();
    iterator   operator -- (int postfix)
    {
-      return *this;;
+      BNode* pOld = *this;
+      --this;
+      return pOld;
    }
 
    // must give friend status to remove so it can call getNode() from it
@@ -464,7 +471,7 @@ typename BST <T> :: iterator custom :: BST <T> :: begin() const noexcept
 {
    if (empty())
       return end();
-   BNode* p = root;
+   BNode* p = root; // help 
    while (p->pLeft)
       p = p->pLeft;
    return iterator(p);
@@ -855,6 +862,31 @@ void BST<T>::BNode::balance()
 template <typename T>
 typename BST <T> :: iterator & BST <T> :: iterator :: operator ++ ()
 {
+   if (!pNode)
+      return *this;
+   if (pNode->pRight)
+   {
+      pNode = pNode->pRight;
+      while (pNode->pLeft)
+      {
+         pNode = pNode->pLeft;
+      }
+      return *this;
+   }
+   if (pNode->pRight == nullptr && pNode->pParent->pLeft == pNode)
+   {
+      pNode = pNode->pParent;
+      return *this;
+   }
+   if (pNode->pRight == nullptr && pNode->pParent->pRight == pNode)
+   {
+      while (pNode->pParent && pNode->pParent->pRight == pNode)
+      {
+         pNode = pNode->pParent;
+      }
+      pNode = pNode->pParent;
+      return *this;
+   }
    return *this;
 }
 
@@ -865,6 +897,31 @@ typename BST <T> :: iterator & BST <T> :: iterator :: operator ++ ()
 template <typename T>
 typename BST <T> :: iterator & BST <T> :: iterator :: operator -- ()
 {
+   if (!pNode)
+      return *this;
+   if (pNode->pLeft)
+   {
+      pNode = pNode->pLeft;
+      while (pNode->pRight)
+      {
+         pNode = pNode->pRight;
+      }
+      return *this;
+   }
+   if (pNode->pLeft == nullptr && pNode->pParent->pRight == pNode)
+   {
+      pNode = pNode->pParent;
+      return *this;
+   }
+   if (pNode->pLeft == nullptr && pNode->pParent->pLeft == pNode)
+   {
+      while (pNode->pParent && pNode->pParent->pLeft == pNode)
+      {
+         pNode = pNode->pParent;
+      }
+      pNode = pNode->pParent;
+      return *this;
+   }
    return *this;
 
 }
