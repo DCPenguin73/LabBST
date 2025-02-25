@@ -464,7 +464,7 @@ typename BST <T> :: iterator custom :: BST <T> :: begin() const noexcept
 {
    if (empty())
       return end();
-   BNode* p = root;
+   BNode* p = root; // help 
    while (p->pLeft)
       p = p->pLeft;
    return iterator(p);
