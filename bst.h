@@ -266,7 +266,9 @@ public:
    // increment and decrement
    iterator & operator ++ ();
    iterator   operator ++ (int postfix)
-   {
+   { // save old value
+     // run prefix++
+     // return old value
       return *this;
    }
    iterator & operator -- ();
@@ -856,6 +858,31 @@ void BST<T>::BNode::balance()
 template <typename T>
 typename BST <T> :: iterator & BST <T> :: iterator :: operator ++ ()
 {
+   if (!pNode)
+      return *this;
+   if (pNode->pRight)
+   {
+      pNode = pNode->pRight;
+      while (pNode->pLeft)
+      {
+         pNode = pNode->pLeft;
+      }
+      return *this;
+   }
+   if (pNode->pRight == nullptr && pNode->pParent->pLeft == pNode)
+   {
+      pNode = pNode->pParent;
+      return *this;
+   }
+   if (pNode->pRight == nullptr && pNode->pParent->pRight == pNode)
+   {
+      while (pNode->pParent && pNode->pParent->pRight == pNode)
+      {
+         pNode = pNode->pParent;
+      }
+      pNode = pNode->pParent;
+      return *this;
+   }
    return *this;
 }
 
