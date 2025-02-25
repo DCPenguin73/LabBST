@@ -42,7 +42,7 @@ public:
       test_constructMove_one();
       test_constructMove_standard();
       test_constructInitializer_empty();
-      //test_constructInitializer_standard();
+      test_constructInitializer_standard();
       test_destruct_empty();
       test_destruct_standard();
 

@@ -87,7 +87,7 @@ public:
 
    class iterator;
    iterator   begin() const noexcept;
-   iterator   end()   const noexcept { return iterator(nullptr); }
+   iterator   end()   const noexcept { return iterator(nullptr); }  // here 2, 4 (test_constructInitializer_standard)
 
    //
    // Access
@@ -235,10 +235,10 @@ class BST <T> :: iterator
    friend class custom::map;
 public:
    // constructors and assignment
-   iterator(BNode * p = nullptr) : pNode(p)// needs implemented
+   iterator(BNode * p = nullptr) : pNode(p)// needs implemented // here 3, possible location of fail (test_constructInitializer_standard)
    {
    }
-   iterator(const iterator & rhs) : pNode(rhs.pNode)
+   iterator(const iterator & rhs) : pNode(rhs.pNode) // here 6, also possible location of fail (test_constructInitializer_standard)
    {
    }
    iterator & operator = (const iterator & rhs)
@@ -341,7 +341,7 @@ BST <T> :: BST(BST <T> && rhs)
  * Create a BST from an initializer list
  ********************************************/
 template <typename T>
-BST <T> ::BST(const std::initializer_list<T>& il)
+BST <T> ::BST(const std::initializer_list<T>& il) 
 {
    root = nullptr;
    numElements = 0;
@@ -424,7 +424,7 @@ void BST <T> :: swap (BST <T>& rhs)
  * Insert a node at a given location in the tree
  ****************************************************/
 template <typename T>
-std::pair<typename BST <T> :: iterator, bool> BST <T> :: insert(const T & t, bool keepUnique)
+std::pair<typename BST <T> :: iterator, bool> BST <T> :: insert(const T & t, bool keepUnique)  //here 1, 5, 7 (test_constructInitializer_standard)
 {
    std::pair<iterator, bool> pairReturn(end(), false);
    return pairReturn;
