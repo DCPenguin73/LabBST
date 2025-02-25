@@ -260,7 +260,7 @@ public:
    // de-reference. Cannot change because it will invalidate the BST
    const T & operator * () const
    {
-      return *(new T);
+      return pNode->data;
    }
 
    // increment and decrement
@@ -269,12 +269,16 @@ public:
    { // save old value
      // run prefix++
      // return old value
-      return *this;
+      BNode* pOld = *this;
+      ++this;
+      return pOld;
    }
    iterator & operator -- ();
    iterator   operator -- (int postfix)
    {
-      return *this;;
+      BNode* pOld = *this;
+      --this;
+      return pOld;
    }
 
    // must give friend status to remove so it can call getNode() from it
@@ -893,6 +897,31 @@ typename BST <T> :: iterator & BST <T> :: iterator :: operator ++ ()
 template <typename T>
 typename BST <T> :: iterator & BST <T> :: iterator :: operator -- ()
 {
+   if (!pNode)
+      return *this;
+   if (pNode->pLeft)
+   {
+      pNode = pNode->pLeft;
+      while (pNode->pRight)
+      {
+         pNode = pNode->pRight;
+      }
+      return *this;
+   }
+   if (pNode->pLeft == nullptr && pNode->pParent->pRight == pNode)
+   {
+      pNode = pNode->pParent;
+      return *this;
+   }
+   if (pNode->pLeft == nullptr && pNode->pParent->pLeft == pNode)
+   {
+      while (pNode->pParent && pNode->pParent->pLeft == pNode)
+      {
+         pNode = pNode->pParent;
+      }
+      pNode = pNode->pParent;
+      return *this;
+   }
    return *this;
 
 }
