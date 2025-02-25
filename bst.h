@@ -693,7 +693,7 @@ int BST <T> :: BNode :: computeSize() const
  * Balance the tree from a given location
  ******************************************************/
 template <typename T>
-void BST <T> :: BNode :: balance()
+void BST<T>::BNode::balance()
 {
    // Case 1: if we are the root, then color ourselves black and call it a day.
    if (pParent == nullptr)
@@ -708,101 +708,135 @@ void BST <T> :: BNode :: balance()
 
    // Case 3: if the aunt is red, then just recolor
 
-   BNode * pGranny = pParent->pParent;
-   BNode *pAunt = (pParent->pParent->pLeft == pParent) ? pParent->pParent->pRight : pParent->pParent->pLeft;
+   BNode* pGranny = pParent->pParent;
+   if (pGranny == nullptr)
+      return;
 
-   if (pParent->isRed && !pGranny->isRed && pAunt->isRed)
+   BNode* pAunt = (pGranny->pLeft == pParent) ? pGranny->pRight : pGranny->pLeft;
+
+   if (pAunt != nullptr && pAunt->isRed)
    {
-      isRed = false;
+      pParent->isRed = false;
+      pAunt->isRed = false;
+      pGranny->isRed = true;
       pGranny->balance();
+      return;
    }
 
-   // Case 4: if the aunt is black or non-existant, then we need to rotate
-   if (!pAunt->isRed || !pAunt)
-   {
-
-      BNode * pMom = this->pParent;
-      BNode * pNew = this;
-      BNode * pSibling = (pParent->pRight == pNew) ? pParent->pLeft : pParent->pRight;
-      BNode * pHead = pGranny->pParent;
+   // Case 4: if the aunt is black or non-existent, then we need to rotate
+   BNode* pMom = this->pParent;
+   BNode* pNew = this;
+   BNode* pSibling = (pParent->pRight == pNew) ? pParent->pLeft : pParent->pRight;
+   BNode* pHead = pGranny->pParent;
 
    // Case 4a: We are mom's left and mom is granny's left
-      if (pParent->pLeft == this && pGranny->pLeft == pParent)
+   // Rotate Right
+   if (pParent->pLeft == this && pGranny->pLeft == pParent)
+   {
+      // Perform the rotation
+      if (pSibling != nullptr)
       {
-         // If sibbling exists
-         if (pSibling)
-         {
-            // pGranny.addLeft(pParent->pRight)
-            pGranny->pLeft = pParent->pRight;
-            pGranny->pLeft->pParent = pGranny;
-         }
-         //pParent.addRight(pGranny)
-         pParent->pRight = pGranny;
-         pGranny->pParent = pParent;
-         pParent->pParent = pHead;
-         // Recolor
-         pGranny->isRed = true;
-         pParent->isRed = false;
+         pGranny->addLeft(pParent->pRight);
       }
-   // case 4b: We are mom's right and mom is granny's right
-     if (pParent->isRed && !pGranny->isRed && !pSibling->isRed && !pAunt->isRed && pParent->pRight == pNew && pGranny->pRight == pParent)
+      else
+      {
+         pGranny->pLeft = nullptr;
+      }
 
+      pParent->addRight(pGranny);
+      pParent->pParent = pHead;
+
+      // Fix Parent pointers
+      if (pHead != nullptr)
       {
-         if (pSibling)
-         {
-            // pGranny.addRight(pParent->pLeft)
-            pGranny->pRight = pParent->pLeft;
-            pGranny->pRight->pParent = pGranny;
-         }
-         // pParent.addLeft(pGranny)
-         pParent->pLeft = pGranny;
-         pGranny->pParent = pParent;
-         pParent->pParent = pHead;
-         // Recolor
-         pGranny->isRed = true;
-         pParent->isRed = false;
+         if (pHead->pLeft == pGranny)
+            pHead->addLeft(pParent);
+         else
+            pHead->addRight(pParent);
       }
+
+      // Recolor
+      pGranny->isRed = true;
+      pParent->isRed = false;
+   }
+   // Case 4b: We are mom's right and mom is granny's right
+   // Left Rotation
+   else if (pParent->pRight == this && pGranny->pRight == pParent)
+   {
+      // Perform the rotation
+      if (pSibling != nullptr)
+      {
+         pGranny->addRight(pParent->pLeft);
+      }
+      else
+      {
+         pGranny->pRight = nullptr;
+      }
+
+      pParent->addLeft(pGranny);
+      pParent->pParent = pHead;
+
+      // Fix parent pointers
+      if (pHead != nullptr)
+      {
+         if (pHead->pLeft == pGranny)
+            pHead->addLeft(pParent);
+         else
+            pHead->addRight(pParent);
+      }
+      // Recolor
+      pGranny->isRed = true;
+      pParent->isRed = false;
+   }
    // Case 4c: We are mom's right and mom is granny's left
-      if (pParent->isRed && !pGranny->isRed && !pSibling->isRed && !pAunt->isRed && pParent->pRight == pNew && pGranny->pLeft == pParent)
+   // Double Right Rotation
+   else if (pParent->pRight == this && pGranny->pLeft == pParent)
+   {
+      // Perform the rotations
+      pGranny->addLeft(pNew->pRight);
+      pParent->addRight(pNew->pLeft);
+
+      pNew->addLeft(pParent);
+      pNew->addRight(pGranny);
+      pNew->pParent = pHead;
+
+      if (pHead != nullptr)
       {
-         pGranny->pLeft = pNew->pRight;
-         pParent->pRight = pNew->pLeft;
-
-         if (pGranny->pParent == nullptr)
-            pNew->pParent = nullptr;
-         else if (pGranny->pParent->pLeft == pGranny)
-            pGranny->pParent->pLeft = pNew;
+         if (pHead->pLeft == pGranny)
+            pHead->addLeft(pNew);
          else
-            pGranny->pParent->pRight = pNew;
-
-         pNew->pRight = pGranny;
-         pNew->pLeft = pMom;
-         //Recolor
-         pGranny->isRed = true;
-         pNew->isRed = false;
-      }
-   // case 4d: we are mom's left and mom is granny's right
-      if (pParent->isRed && !pGranny->isRed && !pSibling->isRed && !pAunt->isRed && pParent->pLeft == pNew && pGranny->pRight == pParent)
-      {
-         pGranny->pRight = pNew->pLeft;
-         pParent->pLeft = pNew->pRight;
-
-         if (pGranny->pParent == nullptr)
-            pNew->pParent = nullptr;
-
-         else if (pGranny->pParent->pRight == pGranny)
-            pGranny->pParent->pRight = pNew;
-
-         else
-            pGranny->pParent->pLeft = pNew;
-
-         pNew->pLeft = pGranny;
-         pNew->pRight = pMom;
-         // Recolor
-         pGranny->isRed = true;
-         pNew->isRed = false;
+            pHead->addRight(pNew);
       }
 
+      // Recolor
+      pGranny->isRed = true;
+      pNew->isRed = false;
+   }
+   // Case 4d: we are mom's left and mom is granny's right
+   // Double Left Rotation
+   else if (pParent->pLeft == this && pGranny->pRight == pParent)
+   {
+      // Perform the rotations
+
+      pGranny->addRight(pNew->pLeft);
+      pParent->addLeft(pNew->pRight);
+
+      pNew->addRight(pParent);
+      pNew->addLeft(pGranny);
+
+      pNew->pParent = pHead;
+
+       if (pHead != nullptr)
+      {
+         if (pHead->pLeft == pGranny)
+            pHead->addLeft(pNew);
+         else
+            pHead->addRight(pNew);
+      }
+
+      // Recolor
+      pGranny->isRed = true;
+      pNew->isRed = false;
    }
 }
 
