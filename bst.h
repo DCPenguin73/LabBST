@@ -19,6 +19,8 @@
 
 #pragma once
 
+#include <cstddef>
+#include <system_error>
 #ifdef DEBUG
 #define debug(x) x
 #else // !DEBUG
@@ -93,7 +95,7 @@ public:
 
    iterator find(const T& t);
 
-   // 
+   //
    // Insert
    //
 
@@ -102,18 +104,18 @@ public:
 
    //
    // Remove
-   // 
+   //
 
    iterator erase(iterator& it);
    void   clear() noexcept;
 
-   // 
+   //
    // Status
    //
 
    bool   empty() const noexcept { return numElements == 0; }
    size_t size()  const noexcept { return numElements; }
-   
+
 private:
 
    class BNode;
@@ -131,13 +133,13 @@ template <typename T>
 class BST <T> :: BNode
 {
 public:
-   // 
+   //
    // Construct
    //
+
    BNode() : pParent(nullptr), pLeft(nullptr), pRight(nullptr), isRed(true){ }
    BNode(const T& t) : data(t), pParent(nullptr), pLeft(nullptr), pRight(nullptr), isRed(true) { }
    BNode(T&& t) : data(std::move(t)), pParent(nullptr), pLeft(nullptr), pRight(nullptr), isRed(true) { }
-  
 
    //
    // Insert
@@ -149,11 +151,11 @@ public:
    void addLeft(       T && t);
    void addRight(      T && t);
 
-   // 
+   //
    // Status
    //
-   bool isRightChild(BNode* pNode) const { return true; }
-   bool isLeftChild(BNode* pNode) const { return true; }
+   bool isRightChild(BNode* pNode) const { return (pParent->pRight == this) ? true : false; }
+   bool isLeftChild(BNode* pNode) const  { return (pParent->pLeft  == this) ? true : false; }
 
    // balance the tree
    void balance();
@@ -204,7 +206,7 @@ public:
             pDest->pRight->pParent = pDest;
       }
    }
-   
+
 
    void clear(BNode*& pThis) {
       if (pThis) {
@@ -233,10 +235,10 @@ class BST <T> :: iterator
    friend class custom::map;
 public:
    // constructors and assignment
-   iterator(BNode * p = nullptr)          
-   { 
+   iterator(BNode * p = nullptr)
+   {
    }
-   iterator(const iterator & rhs)         
+   iterator(const iterator & rhs)
    {
    }
    iterator & operator = (const iterator & rhs)
@@ -255,7 +257,7 @@ public:
    }
 
    // de-reference. Cannot change because it will invalidate the BST
-   const T & operator * () const 
+   const T & operator * () const
    {
       return *(new T);
    }
@@ -276,7 +278,7 @@ public:
    friend BST <T> :: iterator BST <T> :: erase(iterator & it);
 
 private:
-   
+
     // the node
     BNode * pNode;
 };
@@ -318,7 +320,7 @@ BST <T> ::BST(const BST<T>& rhs) : numElements(0), root(nullptr)
  * Move one tree to another
  ********************************************/
 template <typename T>
-BST <T> :: BST(BST <T> && rhs) 
+BST <T> :: BST(BST <T> && rhs)
 {
    root = rhs.root;
    numElements = rhs.numElements;
@@ -434,7 +436,7 @@ std::pair<typename BST <T> ::iterator, bool> BST <T> ::insert(T && t, bool keepU
  ************************************************/
 template <typename T>
 typename BST <T> ::iterator BST <T> :: erase(iterator & it)
-{  
+{
    return end();
 }
 
@@ -497,7 +499,7 @@ typename BST <T> :: iterator BST<T> :: find(const T & t)
  ******************************************************
  ******************************************************/
 
- 
+
 /******************************************************
  * BINARY NODE :: ADD LEFT
  * Add a node to the left of the current node
@@ -505,7 +507,8 @@ typename BST <T> :: iterator BST<T> :: find(const T & t)
 template <typename T>
 void BST <T> :: BNode :: addLeft (BNode * pNode)
 {
-
+   this->pLeft = pNode;
+   pNode->pParent = this;
 }
 
 /******************************************************
@@ -515,7 +518,8 @@ void BST <T> :: BNode :: addLeft (BNode * pNode)
 template <typename T>
 void BST <T> :: BNode :: addRight (BNode * pNode)
 {
-
+   this->pRight = pNode;
+   pNode->pParent = this;
 }
 
 /******************************************************
@@ -525,7 +529,8 @@ void BST <T> :: BNode :: addRight (BNode * pNode)
 template <typename T>
 void BST<T> :: BNode :: addLeft (const T & t)
 {
-
+    pLeft = new BNode * (t);
+    pLeft->pParent = this;
 }
 
 /******************************************************
@@ -535,7 +540,8 @@ void BST<T> :: BNode :: addLeft (const T & t)
 template <typename T>
 void BST<T> ::BNode::addLeft(T && t)
 {
-
+   pLeft = new BNode * (std::move(t));
+   pLeft->pParent = this;
 }
 
 /******************************************************
@@ -545,7 +551,8 @@ void BST<T> ::BNode::addLeft(T && t)
 template <typename T>
 void BST <T> :: BNode :: addRight (const T & t)
 {
-
+   pRight = new BNode * (t);
+   pRight->pParent = this;
 }
 
 /******************************************************
@@ -555,7 +562,8 @@ void BST <T> :: BNode :: addRight (const T & t)
 template <typename T>
 void BST <T> ::BNode::addRight(T && t)
 {
-
+   pRight = new BNode * (std::move(t));
+   pRight->pParent = this;
 }
 
 #ifdef DEBUG
@@ -685,21 +693,151 @@ int BST <T> :: BNode :: computeSize() const
  * Balance the tree from a given location
  ******************************************************/
 template <typename T>
-void BST <T> :: BNode :: balance()
+void BST<T>::BNode::balance()
 {
    // Case 1: if we are the root, then color ourselves black and call it a day.
-
+   if (pParent == nullptr)
+   {
+      isRed = false;
+      return;
+   }
 
    // Case 2: if the parent is black, then there is nothing left to do
+   if (!pParent->isRed)
+      return;
 
    // Case 3: if the aunt is red, then just recolor
 
-   // Case 4: if the aunt is black or non-existant, then we need to rotate
+   BNode* pGranny = pParent->pParent;
+   if (pGranny == nullptr)
+      return;
+
+   BNode* pAunt = (pGranny->pLeft == pParent) ? pGranny->pRight : pGranny->pLeft;
+
+   if (pAunt != nullptr && pAunt->isRed)
+   {
+      pParent->isRed = false;
+      pAunt->isRed = false;
+      pGranny->isRed = true;
+      pGranny->balance();
+      return;
+   }
+
+   // Case 4: if the aunt is black or non-existent, then we need to rotate
+   BNode* pMom = this->pParent;
+   BNode* pNew = this;
+   BNode* pSibling = (pParent->pRight == pNew) ? pParent->pLeft : pParent->pRight;
+   BNode* pHead = pGranny->pParent;
 
    // Case 4a: We are mom's left and mom is granny's left
-   // case 4b: We are mom's right and mom is granny's right
+   // Rotate Right
+   if (pParent->pLeft == this && pGranny->pLeft == pParent)
+   {
+      // Perform the rotation
+      if (pSibling != nullptr)
+      {
+         pGranny->addLeft(pParent->pRight);
+      }
+      else
+      {
+         pGranny->pLeft = nullptr;
+      }
+
+      pParent->addRight(pGranny);
+      pParent->pParent = pHead;
+
+      // Fix Parent pointers
+      if (pHead != nullptr)
+      {
+         if (pHead->pLeft == pGranny)
+            pHead->addLeft(pParent);
+         else
+            pHead->addRight(pParent);
+      }
+
+      // Recolor
+      pGranny->isRed = true;
+      pParent->isRed = false;
+   }
+   // Case 4b: We are mom's right and mom is granny's right
+   // Left Rotation
+   else if (pParent->pRight == this && pGranny->pRight == pParent)
+   {
+      // Perform the rotation
+      if (pSibling != nullptr)
+      {
+         pGranny->addRight(pParent->pLeft);
+      }
+      else
+      {
+         pGranny->pRight = nullptr;
+      }
+
+      pParent->addLeft(pGranny);
+      pParent->pParent = pHead;
+
+      // Fix parent pointers
+      if (pHead != nullptr)
+      {
+         if (pHead->pLeft == pGranny)
+            pHead->addLeft(pParent);
+         else
+            pHead->addRight(pParent);
+      }
+      // Recolor
+      pGranny->isRed = true;
+      pParent->isRed = false;
+   }
    // Case 4c: We are mom's right and mom is granny's left
-   // case 4d: we are mom's left and mom is granny's right
+   // Double Right Rotation
+   else if (pParent->pRight == this && pGranny->pLeft == pParent)
+   {
+      // Perform the rotations
+      pGranny->addLeft(pNew->pRight);
+      pParent->addRight(pNew->pLeft);
+
+      pNew->addLeft(pParent);
+      pNew->addRight(pGranny);
+      pNew->pParent = pHead;
+
+      if (pHead != nullptr)
+      {
+         if (pHead->pLeft == pGranny)
+            pHead->addLeft(pNew);
+         else
+            pHead->addRight(pNew);
+      }
+
+      // Recolor
+      pGranny->isRed = true;
+      pNew->isRed = false;
+   }
+   // Case 4d: we are mom's left and mom is granny's right
+   // Double Left Rotation
+   else if (pParent->pLeft == this && pGranny->pRight == pParent)
+   {
+      // Perform the rotations
+
+      pGranny->addRight(pNew->pLeft);
+      pParent->addLeft(pNew->pRight);
+
+      pNew->addRight(pParent);
+      pNew->addLeft(pGranny);
+
+      pNew->pParent = pHead;
+
+       if (pHead != nullptr)
+      {
+         if (pHead->pLeft == pGranny)
+            pHead->addLeft(pNew);
+         else
+            pHead->addRight(pNew);
+      }
+
+      // Recolor
+      pGranny->isRed = true;
+      pNew->isRed = false;
+   }
 }
 
 /*************************************************
@@ -708,7 +846,7 @@ void BST <T> :: BNode :: balance()
  ****************** ITERATOR *********************
  *************************************************
  *************************************************
- *************************************************/     
+ *************************************************/
 
 /**************************************************
  * BST ITERATOR :: INCREMENT PREFIX
@@ -717,7 +855,7 @@ void BST <T> :: BNode :: balance()
 template <typename T>
 typename BST <T> :: iterator & BST <T> :: iterator :: operator ++ ()
 {
-   return *this;  
+   return *this;
 }
 
 /**************************************************
@@ -733,5 +871,3 @@ typename BST <T> :: iterator & BST <T> :: iterator :: operator -- ()
 
 
 } // namespace custom
-
-
