@@ -182,29 +182,27 @@ public:
 
    void assign(BNode*& pDest, const BNode* pSrc) {
       if (pSrc == nullptr) {
-         clear(pDest);
+         clear(pDest);  // Only clear if source is null
          return;
       }
+
       if (pDest == nullptr) {
          pDest = new BNode(pSrc->data);
-         pDest->isRed = pSrc->isRed; // Copy the isRed property
-         assign(pDest->pLeft, pSrc->pLeft);
-         if (pDest->pLeft)
-            pDest->pLeft->pParent = pDest;
-         assign(pDest->pRight, pSrc->pRight);
-         if (pDest->pRight)
-            pDest->pRight->pParent = pDest;
+         pDest->isRed = pSrc->isRed;  // Copy the isRed property
       }
       else {
          pDest->data = pSrc->data;
-         pDest->isRed = pSrc->isRed; // Copy the isRed property
-         assign(pDest->pLeft, pSrc->pLeft);
-         if (pDest->pLeft)
-            pDest->pLeft->pParent = pDest;
-         assign(pDest->pRight, pSrc->pRight);
-         if (pDest->pRight)
-            pDest->pRight->pParent = pDest;
+         pDest->isRed = pSrc->isRed;  // Copy the isRed property
       }
+
+      // Recursively assign left and right subtrees
+      assign(pDest->pLeft, pSrc->pLeft);
+      if (pDest->pLeft)
+         pDest->pLeft->pParent = pDest;
+
+      assign(pDest->pRight, pSrc->pRight);
+      if (pDest->pRight)
+         pDest->pRight->pParent = pDest;
    }
 
 
@@ -235,27 +233,17 @@ class BST <T> :: iterator
    friend class custom::map;
 public:
    // constructors and assignment
-   iterator(BNode * p = nullptr) : pNode(p)// needs implemented
-   {
-   }
-   iterator(const iterator & rhs) : pNode(rhs.pNode)
-   {
-   }
-   iterator & operator = (const iterator & rhs)
+   iterator(BNode* p = nullptr) : pNode(p) { }
+   iterator(const iterator& rhs) : pNode(rhs.pNode) { }
+   iterator& operator = (const iterator& rhs)
    {
       pNode = rhs.pNode;
       return *this;
    }
 
    // compare
-   bool operator == (const iterator & rhs) const
-   {
-      return pNode== rhs.pNode;
-   }
-   bool operator != (const iterator & rhs) const
-   {
-      return pNode != rhs.pNode;
-   }
+   bool operator == (const iterator& rhs) const { return pNode == rhs.pNode; }
+   bool operator != (const iterator& rhs) const { return pNode != rhs.pNode; }
 
    // de-reference. Cannot change because it will invalidate the BST
    const T & operator * () const
@@ -367,7 +355,7 @@ BST <T> & BST <T> :: operator = (const BST <T> & rhs)
 {
    if(this != &rhs) {
       // Clean up existing resources
-      clear();
+      //clear();
 
       // Assign new values
       root->assign(root, rhs.root);
@@ -454,11 +442,11 @@ typename BST <T> ::iterator BST <T> :: erase(iterator & it)
 template <typename T>
 void BST <T> ::clear() noexcept
 {
-   if (root) {
+   if(root != nullptr) {
       root->clear(root);
+      root = nullptr;
    }
    numElements = 0;
-   root = nullptr;
 
 }
 

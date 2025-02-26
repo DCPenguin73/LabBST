@@ -51,9 +51,9 @@ public:
       test_assign_emptyToEmpty();
       test_assign_standardToEmpty();
       test_assign_emptyToStandard();
-      //test_assign_oneToStandard();
-      //test_assign_standardToOne();
-      //test_assign_standardToStandard();
+      test_assign_oneToStandard();
+      test_assign_standardToOne();
+      test_assign_standardToStandard();
       test_assignMove_emptyToEmpty();
       test_assignMove_standardToEmpty();
       test_assignMove_emptyToStandard();
@@ -61,7 +61,7 @@ public:
       test_assignMove_standardToOne();
       test_assignMove_standardToStandard();
       //test_assignInitializer_oneToStandard();
-      //test_assignInitializer_standardToEmpty();
+      test_assignInitializer_standardToEmpty();
       test_swap_emptyToEmpty();
       test_swap_standardToEmpty();
       test_swap_emptyToStandard();
@@ -87,8 +87,8 @@ public:
 
       // Find
       test_find_empty();
-      //test_find_standardBegin();
-      //test_find_standardLast();
+      test_find_standardBegin();
+      test_find_standardLast();
       test_find_standardMissing();
 
       // Insert
