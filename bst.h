@@ -469,6 +469,7 @@ std::pair<typename BST <T> :: iterator, bool> BST <T> :: insert(const T & t, boo
    newNode->balance();
 
    return pairReturn;
+
 }
 
 template <typename T>
