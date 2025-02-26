@@ -476,6 +476,62 @@ template <typename T>
 std::pair<typename BST <T> ::iterator, bool> BST <T> ::insert(T && t, bool keepUnique)
 {
    std::pair<iterator, bool> pairReturn(end(), false);
+
+   // If empty, just insert at the root and return
+   if (empty()) {
+      root = new BNode(std::move(t));
+      numElements = 1;
+      root->balance();
+      pairReturn.first = iterator(root);
+      pairReturn.second = true;
+      return pairReturn;
+   }
+
+   // Find insertion point
+   BNode* current = root;
+   BNode* parent = nullptr;
+   bool goLeft = false;
+
+   while (current != nullptr) {
+      parent = current;
+      if (keepUnique)
+      {
+         if (t == current->data)
+         {
+            pairReturn.first = iterator(current);
+            pairReturn.second = false;
+            return pairReturn;
+         }
+      }
+      if (t < current->data) {
+         goLeft = true;
+         current = current->pLeft;
+      }
+      else {
+         goLeft = false;
+         current = current->pRight;
+      }
+   }
+
+   // Insert new node
+   BNode* newNode = new BNode(std::move(t));
+   // Insert red
+   newNode->isRed = true;
+
+   if (goLeft) {
+      parent->addLeft(newNode);
+   }
+   else {
+      parent->addRight(newNode);
+   }
+
+   numElements++;
+   pairReturn.first = iterator(newNode);
+   pairReturn.second = true;
+
+   // Balance tree
+   newNode->balance();
+
    return pairReturn;
 }
 
