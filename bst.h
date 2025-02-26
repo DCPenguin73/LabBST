@@ -266,18 +266,18 @@ public:
    // increment and decrement
    iterator & operator ++ ();
    iterator   operator ++ (int postfix)
-   { // save old value
+   { // save old iterator
      // run prefix++
-     // return old value
-      BNode* pOld = *this;
-      ++this;
+     // return old iterator
+      iterator pOld = *this;
+      ++(*this);
       return pOld;
    }
    iterator & operator -- ();
    iterator   operator -- (int postfix)
    {
-      BNode* pOld = *this;
-      --this;
+      iterator pOld = *this;
+      --(*this);
       return pOld;
    }
 
@@ -427,7 +427,65 @@ template <typename T>
 std::pair<typename BST <T> :: iterator, bool> BST <T> :: insert(const T & t, bool keepUnique)
 {
    std::pair<iterator, bool> pairReturn(end(), false);
-   return pairReturn;
+
+       // If empty, just insert at the root and return
+       if (empty()) {
+           root = new BNode(t);
+           numElements = 1;
+           root->isRed = false; // Root is always black
+           pairReturn.first = iterator(root);
+           pairReturn.second = true;
+           return pairReturn;
+       }
+
+       // Find the insertion point
+       BNode* current = root;
+       BNode* parent = nullptr;
+       bool goLeft = false;
+
+       while (current != nullptr) {
+           parent = current;
+           if (t == current->data) {
+               if (keepUnique) {
+                   pairReturn.first = iterator(current);
+                   pairReturn.second = false;
+                   return pairReturn; // Value already exists and keepUnique is true
+               } else {
+                   // Insert duplicate to the right. This might not be the best way
+                   // but it is a possible solution to duplicates.
+                   goLeft = false; // Ensure we go right for duplicates
+                   current = current->pRight;
+               }
+           } else if (t < current->data) {
+               goLeft = true;
+               current = current->pLeft;
+           } else {
+               goLeft = false;
+               current = current->pRight;
+           }
+       }
+
+       // // Insert the new node
+       BNode* newNode = new BNode(t);
+       newNode->isRed = true; // Insert red
+
+       if (goLeft) {
+           parent->addLeft(newNode);
+       } else {
+           parent->addRight(newNode);
+       }
+
+       numElements++;
+       pairReturn.first = iterator(newNode);
+       pairReturn.second = true;
+
+       // Balance the tree
+       //newNode->balance();
+
+       // // Ensure root is black
+       // root->isRed = false;
+
+       return pairReturn;
 }
 
 template <typename T>
@@ -471,7 +529,7 @@ typename BST <T> :: iterator custom :: BST <T> :: begin() const noexcept
 {
    if (empty())
       return end();
-   BNode* p = root; // help 
+   BNode* p = root; // help
    while (p->pLeft)
       p = p->pLeft;
    return iterator(p);
@@ -533,21 +591,21 @@ void BST <T> :: BNode :: addRight (BNode * pNode)
  * BINARY NODE :: ADD LEFT
  * Add a node to the left of the current node
  ******************************************************/
-template <typename T>
+ template <typename T>
 void BST<T> :: BNode :: addLeft (const T & t)
 {
-    pLeft = new BNode * (t);
-    pLeft->pParent = this;
+   pLeft = new BNode(t);
+   pLeft->pParent = this;
 }
 
 /******************************************************
  * BINARY NODE :: ADD LEFT
  * Add a node to the left of the current node
  ******************************************************/
-template <typename T>
+ template <typename T>
 void BST<T> ::BNode::addLeft(T && t)
 {
-   pLeft = new BNode * (std::move(t));
+   pLeft = new BNode (std::move(t));
    pLeft->pParent = this;
 }
 
@@ -555,10 +613,10 @@ void BST<T> ::BNode::addLeft(T && t)
  * BINARY NODE :: ADD RIGHT
  * Add a node to the right of the current node
  ******************************************************/
-template <typename T>
+ template <typename T>
 void BST <T> :: BNode :: addRight (const T & t)
 {
-   pRight = new BNode * (t);
+   pRight = new BNode(t);
    pRight->pParent = this;
 }
 
@@ -566,10 +624,10 @@ void BST <T> :: BNode :: addRight (const T & t)
  * BINARY NODE :: ADD RIGHT
  * Add a node to the right of the current node
  ******************************************************/
-template <typename T>
+ template <typename T>
 void BST <T> ::BNode::addRight(T && t)
 {
-   pRight = new BNode * (std::move(t));
+   pRight = new BNode (std::move(t));
    pRight->pParent = this;
 }
 
